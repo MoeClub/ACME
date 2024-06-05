@@ -539,6 +539,7 @@ class ACME:
         if order is None:
             return None, None
         if isinstance(order, list) and len(order) > 0:
+            urls, _urls = [], []
             for _ in range(5):
                 if ("key" in self.KWARGS and self.KWARGS["key"] is not None and "secret" in self.KWARGS and self.KWARGS["secret"] is not None) or ("token" in self.KWARGS and self.KWARGS["token"] is not None):
                     urls, _urls = DNS.HUAWEI(name=self.DNSHostValue, sub=self.SUBDOMAIN, order=order, ttl=15, **self.KWARGS)
