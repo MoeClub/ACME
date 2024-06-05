@@ -540,11 +540,13 @@ class ACME:
             return None, None
         if isinstance(order, list) and len(order) > 0:
             for _ in range(5):
-                # input("Wait...")
-                urls, _urls = DNS.HUAWEI(name=self.DNSHostValue, sub=self.SUBDOMAIN, order=order, ttl=15, **self.KWARGS)
-                for url in urls:
-                    resp = await self.HTTP(method="GET", url=url, timeout=60, Proxy=self.Proxy)
-                    print(json.dumps(json.loads(resp["data"].decode()), indent=4, ensure_ascii=False), flush=True)
+                if ("key" in self.KWARGS and self.KWARGS["key"] is not None and "secret" in self.KWARGS and self.KWARGS["secret"] is not None) or ("token" in self.KWARGS and self.KWARGS["token"] is not None):
+                    urls, _urls = DNS.HUAWEI(name=self.DNSHostValue, sub=self.SUBDOMAIN, order=order, ttl=15, **self.KWARGS)
+                    for url in urls:
+                        resp = await self.HTTP(method="GET", url=url, timeout=60, Proxy=self.Proxy)
+                        print(json.dumps(json.loads(resp["data"].decode()), indent=4, ensure_ascii=False), flush=True)
+                else:
+                    input("Add TXT records manually, and press <ENTER> to continue ...")
                 await asyncio.sleep(delay=15)
                 status = await self.CheckChall()
                 if status is True:
