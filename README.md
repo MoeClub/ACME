@@ -1,5 +1,12 @@
 # ACME
 
+## 安装依赖
+```
+apt install -y python3-pip python3-cryptography
+pip3 install aiohttp aiohttp_socks
+
+```
+
 ## acmeAuto.sh
 ```
 示例
