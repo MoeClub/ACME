@@ -26,6 +26,25 @@ bash acmeRenew.sh moeclub.org nginx:/etc/nginx http://xxx.abc.com 1
 # 最后参数为 1 表示启动cron定时更新, 默认为每个星期一的凌晨四点二十五分执行更新检查.
 ```
 
+## GTS 授权
+```
+# 登录谷歌账户, 打开网址点击 Enable 按钮
+https://console.cloud.google.com/apis/library/publicca.googleapis.com
+# 点开右上角的命令图标打开 Cloud Shell
+# 创建密钥
+gcloud publicca external-account-keys create
+
+# 使用 acme.py 进行授权后即可签发 GTS 证书
+python3 acme.py -register -s google -mail "xyz@abc.com" -kid "<keyId>" -key "<hmacKey>"
+
+
+# 选择GCP项目
+gcloud config set project <project-name>
+# 打开API权限
+gcloud services enable publicca.googleapis.com
+
+```
+
 
 
 
