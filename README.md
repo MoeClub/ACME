@@ -15,6 +15,9 @@ python3 acme.py -d "sub.xxx.com,*.sub.xxx.com" -v dns -s google -sub "xxx.com" -
 
 # 注册授权
 python3 acme.py -register -s google -mail "xyz@abc.com" -kid "<keyId>" -key "<hmacKey>"
+
+# 华为DNS自动验证, 否则手动 DNS 验证. 也可自行修改源码.
+修改 acme.py 文件第 587 行的最后 **{"key": None, "secret": None}, 将两个 None 换成你自己的华为DNS密钥.
 ```
 
 ## acmeAuto.sh
