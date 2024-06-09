@@ -7,6 +7,16 @@ pip3 install aiohttp aiohttp_socks
 
 ```
 
+## acme.py
+```
+# 签发新证书
+python3 acme.py -d "xxx.com,*.xxx.com"
+python3 acme.py -d "sub.xxx.com,*.sub.xxx.com" -v dns -s google -sub "xxx.com" -ecc
+
+# 注册授权
+python3 acme.py -register -s google -mail "xyz@abc.com" -kid "<keyId>" -key "<hmacKey>"
+```
+
 ## acmeAuto.sh
 ```
 示例
