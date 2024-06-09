@@ -1,10 +1,11 @@
 #!/bin/bash
 
 crtDomain="${1:-}"
-crtRoot="${2:-/etc/nginx/crt}"
+crtSeviceRoot="${2:-nginx:/etc/nginx/crt}"
 crtServer="${3:-http://crt.libmk.com}"
 crtCron="${4:-0}"
-crtServiceName=("nginx" "ocserv")
+crtServiceName=`echo "${crtSeviceRoot}" |cut -d':' -f1`
+crtRoot=`echo "${crtSeviceRoot}" |cut -d':' -f2`
 
 
 [ "${crtCron}" != "0" ] && execPath="/usr/local/bin/acmeRenew.sh" && cp -rf "$0" "$execPath" && chmod 777 "$execPath" && sed -i "/${crtDomain}/d;\$a\25 4 * * 1 root bash ${execPath} ${crtDomain} ${crtRoot} ${crtServer} >/dev/null 2>&1 &\n\n\n" /etc/crontab >/dev/null 2>&1
