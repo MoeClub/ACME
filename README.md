@@ -30,17 +30,15 @@ bash acmeRenew.sh moeclub.org nginx:/etc/nginx http://xxx.abc.com 1
 ```
 # 登录谷歌账户, 打开网址点击 Enable 按钮
 https://console.cloud.google.com/apis/library/publicca.googleapis.com
-# 点开右上角的命令图标打开 Cloud Shell
-# 创建密钥
+# 点开右上角的命令图标打开 Cloud Shell, 输入创建密钥命令
 gcloud publicca external-account-keys create
-
 # 使用 acme.py 进行授权后即可签发 GTS 证书
 python3 acme.py -register -s google -mail "xyz@abc.com" -kid "<keyId>" -key "<hmacKey>"
 
 
-# 选择GCP项目
+# 选择GCP项目<可选>
 gcloud config set project <project-name>
-# 打开API权限
+# 打开API权限<可选>
 gcloud services enable publicca.googleapis.com
 
 ```
