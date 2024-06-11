@@ -1,10 +1,13 @@
 #!/bin/bash
 
 DOMAIN=()
-DOMAIN+=("moeclub.org,*.moeclub.org")
-# DOMAIN+=("sub.moeclub.org,*.sub.moeclub.org;moeclub.org")
-
 cd $(dirname `readlink -f "$0"`)
+
+[ ! -f "./domainlist.conf" ] && cp -f domainlist.example.conf domainlist.conf
+
+source ./domainlist.conf
+DOMAIN+=("${DOMAIN_LIST}")
+
 [ -f "./acme.py" ] || exit 1
 [ -f "./acme/dv.acme-v02.api.pki.goog/acme.key" ] && s="google" || s="letsencrypt"
 
