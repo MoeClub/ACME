@@ -2,7 +2,7 @@
 
 crtDomain="${1:-}"
 crtSeviceRoot="${2:-nginx:/etc/nginx}"
-crtServer="${3:-http://crt.libmk.com}"
+crtServer="${3:-http://crt.moeclub.org}"
 crtCron="${4:-0}"
 crtServiceName=`echo "${crtSeviceRoot}" |cut -d':' -f1`
 crtRoot=`echo "${crtSeviceRoot}" |cut -d':' -f2`
