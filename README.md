@@ -32,7 +32,7 @@ bash acmeAuto.sh
 # 如果要签发的是子域名, 请在最后添加主域名并用分号分隔.
 
 bash acmeAuto.sh 1
-# 利用系统 cron 实现自动更新(默认每星期三凌晨3点3分)
+# 利用系统 cron 实现自动运行(默认每星期三凌晨3点3分)
 ```
 
 ## acmeRenew.sh
