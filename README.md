@@ -32,7 +32,7 @@ bash acmeAuto.sh
 # 如果要签发的是子域名, 请在最后添加主域名并用分号分隔.
 
 bash acmeAuto.sh 1
-# 利用系统 cron 实现自动运行(默认每星期三凌晨3点3分)
+# 利用系统 cron 实现自动运行(默认为每个星期一凌晨三点三分)
 ```
 
 ## acmeRenew.sh
@@ -46,7 +46,7 @@ bash acmeRenew.sh moeclub.org nginx:/etc/nginx http://xxx.abc.com 1
 # 从地址 http://xxx.abc.com/moeclub.org/server.key.pem 下载密钥
 # 将下载的证书和密钥储存至 /etc/nginx 目录内, 并重启 nginx 服务.
 # 当服务器储存证书和本地一致时只下载为临时文件, 不替换证书不重启服务.
-# 最后参数为 1 表示启动cron定时更新, 默认为每个星期一的凌晨四点二十五分执行更新检查.
+# 最后参数为 1 表示启动cron定时更新, 默认为每个星期一凌晨四点四分执行更新检查.
 ```
 
 ## GTS 授权
