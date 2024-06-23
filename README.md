@@ -30,7 +30,9 @@ bash acmeAuto.sh
 # 如果有 GTS 授权, 优先签发 GTS 证书. 否则签发匿名的 letsencrypt 证书.
 # 域名采用数组模式. 一行一组域名, 域名间用逗号分隔.
 # 如果要签发的是子域名, 请在最后添加主域名并用分号分隔.
-# 自行添加 /etc/crontab 命令实现自动更新证书.
+
+bash acmeAuto.sh 1
+# 利用系统 cron 实现自动更新(默认每星期三凌晨3点3分)
 ```
 
 ## acmeRenew.sh
