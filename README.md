@@ -49,7 +49,7 @@ bash acmeRenew.sh moeclub.org nginx:/etc/nginx http://xxx.abc.com 1
 # 最后参数为 1 表示启动cron定时更新, 默认为每个星期一凌晨四点四分执行更新检查.
 ```
 
-## GTS 授权
+## GTS 授权 (Google Trust Services LLC)
 ```
 # 登录谷歌账户, 打开网址点击 Enable 按钮 (无需GCP账号,只需要能够访问谷歌的账户创建项目)
 https://console.cloud.google.com/apis/library/publicca.googleapis.com
