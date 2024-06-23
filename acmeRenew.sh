@@ -11,7 +11,7 @@ crtTarget="${crtRoot%/}"
 # crtTarget="${crtRoot%/}/${crtDomain%/}"
 
 [ -n "${crtDomain}" ] && [ -n "${crtRoot}" ] && [ -n "${crtServer}" ] || exit 1
-[ "${crtCron}" != "0" ] && execPath="/usr/local/bin/acmeRenew.sh" && cp -rf "$0" "$execPath" && chmod 777 "$execPath" && sed -i "/${crtDomain}/d;\$a\25 4 * * 1 root bash ${execPath} ${crtDomain} ${crtSeviceRoot} ${crtServer} >/dev/null 2>&1 &\n\n\n" /etc/crontab >/dev/null 2>&1
+[ "${crtCron}" != "0" ] && execPath="/usr/local/bin/acmeRenew.sh" && cat "$0" >"$execPath" && chmod 777 "$execPath" && sed -i "/${crtDomain}/d;\$a\25 4 * * 1 root bash ${execPath} ${crtDomain} ${crtSeviceRoot} ${crtServer} >/dev/null 2>&1 &\n\n\n" /etc/crontab >/dev/null 2>&1
 
 
 crt="$(mktemp)"
