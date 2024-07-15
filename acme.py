@@ -339,6 +339,13 @@ class ACME:
             if "Location" in resp["headers"]:
                 self.AccountURL = resp["headers"]["Location"]
             return True
+        try:
+            respJson = json.loads(resp["data"].decode())
+            key = "detail" if "detail" in respJson else None
+            assert key is not None
+            print("Error: {}".format(respJson[key]), flush=True)
+        except:
+            print(resp)
         return False
 
     async def Order(self, domain: (list, str) = None, verify=None):
@@ -395,6 +402,13 @@ class ACME:
                     else:
                         print('[{}] [{}] {} "{}"'.format(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), item["type"], item["domain"] , item["txt"]), flush=True)
                 return result
+        try:
+            respJson = json.loads(resp["data"].decode())
+            key = "detail" if "detail" in respJson else None
+            assert key is not None
+            print("Error: {}".format(respJson[key]), flush=True)
+        except:
+            print(resp)
         return None
 
     async def AuthChall(self, authUrl):
@@ -593,7 +607,10 @@ if __name__ == "__main__":
     if len(acme.DOMAIN) == 0:
         os._exit(0)
     crt, key = loop.run_until_complete(acme.NewCrt())
-    print(crt)
-    print(key)
+    if crt is not None and key is not None:
+        print(crt, flush=True)
+        print(key, flush=True)
+        os._exit(0)
+    os._exit(1)
 
 
