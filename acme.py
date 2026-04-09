@@ -8,6 +8,7 @@ from aiohttp import client
 from aiohttp_socks import ProxyConnector, ProxyType
 from urllib import parse
 import collections
+import ipaddress
 import binascii
 import base64
 import asyncio
@@ -86,7 +87,7 @@ class ACME:
     SUBDOMAIN = list()
     KWARGS = dict()
 
-    def __init__(self, domain: (str, list), sub="", verify="dns", server="letsencrypt", rootData="acme", privKeyPath=None, privateKeyName="acme.key", ecc=True, proxy=None, **kwargs):
+    def __init__(self, domain: (str, list), sub="", verify="dns", server="letsencrypt", http="", rootData="acme", privKeyPath=None, privateKeyName="acme.key", ecc=True, proxy=None, **kwargs):
         self.KWARGS = kwargs
         self.Proxy = proxy
         self.server = server
@@ -95,6 +96,11 @@ class ACME:
         self.PrivateKey = privateKeyName
         self.RootData = rootData
         self.ECC = True if ecc is True else False
+        self.httpPath = "" if not str(http).startswith("/") else str(http).strip()
+        if self.httpPath != "":
+            self.VerifyType = "http"
+        if self.VerifyType == "http" and self.httpPath == "":
+            raise Exception("-http invalid")
         if domain is not None:
             if isinstance(domain, str):
                 domain = str(domain).split(",")
@@ -183,13 +189,22 @@ class ACME:
         fdir = os.path.dirname(f)
         if not os.path.exists(fdir):
             os.makedirs(fdir)
+            os.chmod(fdir, 0o777)
         if isinstance(d, bytes):
             fd = open(f, mode="wb")
         else:
             fd = open(f, mode="w", encoding="utf-8")
         fd.write(d)
         fd.close()
+        os.chmod(f, 0o777)
         return True
+
+    def IsIPAddress(self, s):
+        try:
+            ipaddress.ip_address(s)
+            return True
+        except:
+            return False
 
     def Headers(self):
         return {
@@ -276,7 +291,7 @@ class ACME:
         domain = [str(item).strip() for item in domain if str(item).strip() != ""]
         if len(domain) == 0:
             return None, None
-        builder = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([])).add_extension(x509.SubjectAlternativeName([x509.DNSName(item) for item in domain]), critical=False)
+        builder = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([])).add_extension(x509.SubjectAlternativeName([x509.IPAddress(ipaddress.ip_address(item)) if self.IsIPAddress(s=item) else x509.DNSName(item) for item in domain]), critical=False)
         csr = builder.sign(privKey, hashes.SHA256()).public_bytes(encoding=serialization.Encoding.PEM).decode("utf-8").strip()
         pKey = privKey.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption()).decode("utf-8").strip()
         return csr, pKey
@@ -369,9 +384,11 @@ class ACME:
         payload = {"identifiers": []}
         for item in domain:
             payload["identifiers"].append({
-                "type": verify,
+                "type": "ip" if self.IsIPAddress(item) else "dns",
                 "value": item,
             })
+        if True in [item.get("type") == "ip" for item in payload.get("identifiers", [])]:
+            payload["profile"] = "shortlived"
         if len(payload["identifiers"]) <= 0:
             return None
 
@@ -540,7 +557,7 @@ class ACME:
                     continue
         if self.Crt is not None and self.CrtKey is not None:
             # CrtMark = "{}_{}_{}".format(time.strftime("%Y%m%d%H%M%S", time.localtime()), "ecc" if self.ECC is True else "rsa", self.DOMAIN[0].replace("*", "").replace(".", "_").strip("_"))
-            CrtMark = self.DOMAIN[0].replace("*", "").strip(".")
+            CrtMark = self.DOMAIN[0].replace("*", "_").strip(".")
             CrtPath = os.path.join(self.Root, self.RootData, "crt", CrtMark)
             if not os.path.exists(CrtPath):
                 os.makedirs(CrtPath)
@@ -555,13 +572,19 @@ class ACME:
         if isinstance(order, list) and len(order) > 0:
             urls, _urls = [], []
             for _ in range(5):
-                if ("key" in self.KWARGS and self.KWARGS["key"] is not None and "secret" in self.KWARGS and self.KWARGS["secret"] is not None) or ("token" in self.KWARGS and self.KWARGS["token"] is not None):
-                    urls, _urls = DNS.HUAWEI(name=self.DNSHostValue, sub=self.SUBDOMAIN, order=order, ttl=15, **self.KWARGS)
-                    for url in urls:
-                        resp = await self.HTTP(method="GET", url=url, timeout=60, Proxy=self.Proxy)
-                        print(json.dumps(json.loads(resp["data"].decode()), indent=4, ensure_ascii=False), flush=True)
+                if self.VerifyType in ["http"]:
+                    for item in order:
+                        if not item.get("type", "").startswith("http"):
+                            continue
+                        self.WriteFile(f=os.path.join(self.httpPath, ".well-known/acme-challenge", item.get("token")), d=item.get("txt"), o=True)
                 else:
-                    input("Add TXT records manually, and press <ENTER> to continue ...")
+                    if ("key" in self.KWARGS and self.KWARGS["key"] is not None and "secret" in self.KWARGS and self.KWARGS["secret"] is not None) or ("token" in self.KWARGS and self.KWARGS["token"] is not None):
+                        urls, _urls = DNS.HUAWEI(name=self.DNSHostValue, sub=self.SUBDOMAIN, order=order, ttl=15, **self.KWARGS)
+                        for url in urls:
+                            resp = await self.HTTP(method="GET", url=url, timeout=60, Proxy=self.Proxy)
+                            print(json.dumps(json.loads(resp["data"].decode()), indent=4, ensure_ascii=False), flush=True)
+                    else:
+                        input("Add TXT records manually, and press <ENTER> to continue ...")
                 await asyncio.sleep(delay=15)
                 status = await self.CheckChall()
                 if status is True:
@@ -587,6 +610,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', dest='domain', type=str, help='domains with comma separated.')
     parser.add_argument('-v', dest="verify", type=str, default="dns", help='http, dns.')
     parser.add_argument('-s', dest="server", type=str, default="letsencrypt", help='ca directory.')
+    parser.add_argument('-http', dest="http", type=str, default="", help='http path for verify.')
     parser.add_argument('-ecc', dest="ecc", action="store_true", help='use ecc, default rsa.')
     parser.add_argument('-register', dest="register", action="store_true", help='register')
     parser.add_argument('-mail', dest="mail", type=str, help='mail, register')
@@ -597,8 +621,9 @@ if __name__ == "__main__":
     parser.add_argument('-proxy', dest="proxy", type=str, default=None, help='use proxy.')
     args = parser.parse_args()
 
+
     loop = asyncio.get_event_loop()
-    acme = ACME(domain=args.domain, sub=args.sub, verify=args.verify, server=args.server, rootData=args.data, ecc=args.ecc, proxy=args.proxy, **{"key": None, "secret": None})
+    acme = ACME(domain=args.domain, sub=args.sub, verify=args.verify, server=args.server, http=args.http, rootData=args.data, ecc=args.ecc, proxy=args.proxy, **{"key": None, "secret": None})
     if args.register is True:
         status = loop.run_until_complete(acme.Account(mail=args.mail, kid=args.kid, hmacKey=args.key))
         print("Register Status: {}".format(status))
