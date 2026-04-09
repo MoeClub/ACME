@@ -597,6 +597,7 @@ class ACME:
 
 
 if __name__ == "__main__":
+    # NewCrt: python3 acme.py -d "1.2.4.8" -http "/var/www/html" -ecc
     # NewCrt: python3 acme.py -d "xxx.com,*.xxx.com"
     # NewCrt: python3 acme.py -d "sub.xxx.com,*.sub.xxx.com" -v dns -s google -sub "xxx.com" -ecc
 
