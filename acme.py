@@ -72,6 +72,7 @@ class ACME:
 
     Root = os.path.dirname(os.path.abspath(__file__))
     DNSHostValue = "_acme-challenge"
+    CurrentCA = None
     Server = None
     Nonce = None
     AccountURL = None
@@ -96,11 +97,9 @@ class ACME:
         self.PrivateKey = privateKeyName
         self.RootData = rootData
         self.ECC = True if ecc is True else False
-        self.httpPath = "" if not str(http).startswith("/") else str(http).strip()
+        self.httpPath = "" if str(http).strip() == "" else os.path.abspath(str(http).strip())
         if self.httpPath != "":
             self.VerifyType = "http"
-        if self.VerifyType == "http" and self.httpPath == "":
-            raise Exception("-http invalid")
         if domain is not None:
             if isinstance(domain, str):
                 domain = str(domain).split(",")
@@ -298,12 +297,13 @@ class ACME:
 
     async def Init(self):
         if not str(self.server).startswith("https://"):
-            if self.server not in self.ServerList:
-                return False
-            server = self.ServerList[self.server]
-        resp = await self.HTTP("GET", url=server, headers=self.Headers(), redirect=False, Proxy=self.Proxy)
+            self.server = self.ServerList.get(self.server, None)
+        if self.server is None:
+            return False
+        resp = await self.HTTP("GET", url=self.server, headers=self.Headers(), redirect=False, Proxy=self.Proxy)
         if resp["code"] == 200:
             self.Server = json.loads(resp["data"].decode())
+            self.CurrentCA = self.Server.get("meta", {}).get('caaIdentities', [""])[0].lower()
             if "Replay-Nonce" in resp["headers"]:
                 self.Nonce = resp["headers"]["Replay-Nonce"]
             if self.Nonce is None:
@@ -311,7 +311,7 @@ class ACME:
             if self.privKeyPath is not None:
                 if os.path.sep not in self.PrivateKeyPath:
                     self.PrivateKey = self.PrivateKeyPath
-            self.PrivateKeyPath = os.path.join(self.Root, self.RootData, parse.urlparse(server).hostname, self.PrivateKey)
+            self.PrivateKeyPath = os.path.join(self.Root, self.RootData, parse.urlparse(self.server).hostname, self.PrivateKey)
             return True
         return False
 
@@ -387,8 +387,9 @@ class ACME:
                 "type": "ip" if self.IsIPAddress(item) else "dns",
                 "value": item,
             })
-        if True in [item.get("type") == "ip" for item in payload.get("identifiers", [])]:
-            payload["profile"] = "shortlived"
+        if self.CurrentCA in ['letsencrypt.org']:
+            if True in [item.get("type") == "ip" for item in payload.get("identifiers", [])]:
+                payload["profile"] = "shortlived"
         if len(payload["identifiers"]) <= 0:
             return None
 
@@ -597,7 +598,6 @@ class ACME:
 
 
 if __name__ == "__main__":
-    # NewCrt: python3 acme.py -d "1.2.4.8" -http "/var/www/html" -ecc
     # NewCrt: python3 acme.py -d "xxx.com,*.xxx.com"
     # NewCrt: python3 acme.py -d "sub.xxx.com,*.sub.xxx.com" -v dns -s google -sub "xxx.com" -ecc
 
