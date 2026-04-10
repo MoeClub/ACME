@@ -12,7 +12,7 @@ pip3 install aiohttp_socks
 # 签发新证书
 python3 acme.py -d "xxx.com,*.xxx.com"
 python3 acme.py -d "sub.xxx.com,*.sub.xxx.com" -v dns -s google -sub "xxx.com" -ecc
-python3 acme.py -d "1.2.4.8" -http "/var/www/html"
+python3 acme.py -d "1.2.4.8" -http "/var/www/html" -ecc
 
 # 注册授权
 python3 acme.py -register -s google -mail "xyz@abc.com" -kid "<keyId>" -key "<hmacKey>"
