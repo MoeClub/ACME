@@ -49,4 +49,9 @@ cp -rf "${crt}" "${crtTarget%/}/server.crt.pem"
 cp -rf "${key}" "${crtTarget%/}/server.key.pem"
 
 # restart service
-systemctl restart "${crtServiceName}" 2>/dev/null
+echo "${crtServiceName}" |grep -q "^\." && {
+  docker restart -t 0 "${crtServiceName##.}" 2>/dev/null
+} || {
+  systemctl restart "${crtServiceName}" 2>/dev/null
+}
+
